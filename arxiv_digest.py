@@ -138,8 +138,12 @@ def fetch_huggingface_papers(date_str: str) -> list[dict]:
     log.info("Fetching HuggingFace Daily Papers: %s", url)
 
     req = Request(url, headers={"User-Agent": "ArxivDigest/1.0"})
-    with urlopen(req, timeout=30) as resp:
-        data = json.loads(resp.read())
+    try:
+        with urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read())
+    except Exception as exc:
+        log.warning("HuggingFace Daily Papers request failed (%s); returning empty list", exc)
+        return []
 
     papers = []
     for entry in data:
@@ -196,8 +200,12 @@ def fetch_arxiv_papers(categories: list[str], max_results: int = 200) -> list[di
     log.info("Fetching arxiv: %s", url)
 
     req = Request(url, headers={"User-Agent": "ArxivDigest/1.0"})
-    with urlopen(req, timeout=60) as resp:
-        data = resp.read()
+    try:
+        with urlopen(req, timeout=60) as resp:
+            data = resp.read()
+    except Exception as exc:
+        log.warning("ArXiv API request failed (%s); returning empty list", exc)
+        return []
 
     root = ET.fromstring(data)
     entries = root.findall(f"{ATOM_NS}entry")
